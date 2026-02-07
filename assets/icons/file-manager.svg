@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48">
+    <defs>
+        <linearGradient id="fileGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" style="stop-color:#FFD93D;stop-opacity:1" />
+            <stop offset="100%" style="stop-color:#FFA500;stop-opacity:1" />
+        </linearGradient>
+    </defs>
+    
+    <g id="icon">
+        <!-- Folder -->
+        <path d="M6 10 L6 38 Q6 40 8 40 L40 40 Q42 40 42 38 L42 16 Q42 14 40 14 L22 14 L18 10 Z" 
+              fill="url(#fileGradient)" stroke="#FF8C00" stroke-width="1.5"/>
+        
+        <!-- Folder tab -->
+        <path d="M6 10 L18 10 L22 14 L42 14 L42 18 L6 18 Z" 
+              fill="#FFE87C" opacity="0.8"/>
+        
+        <!-- Details -->
+        <circle cx="15" cy="28" r="2" fill="#FFFFFF" opacity="0.6"/>
+        <circle cx="24" cy="28" r="2" fill="#FFFFFF" opacity="0.6"/>
+        <circle cx="33" cy="28" r="2" fill="#FFFFFF" opacity="0.6"/>
+    </g>
+</svg>

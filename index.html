@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MorgOS v1</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <!-- Splash Screen -->
+    <div id="splashScreen" class="splash-screen">
+        <div class="splash-content">
+            <svg class="logo-animation" width="150" height="150" viewBox="0 0 150 150">
+                <use href="assets/logo.svg#logo"></use>
+            </svg>
+            <h1 class="splash-title">MorgOS</h1>
+            <div class="loading-text">MorgOS Yükleniyor...</div>
+            <div class="loading-bar">
+                <div class="loading-progress"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Desktop -->
+    <div id="desktop" class="desktop hidden">
+        <!-- Top Bar -->
+        <div class="top-bar">
+            <div class="top-bar-left">
+                <svg class="top-logo" width="24" height="24" viewBox="0 0 150 150">
+                    <use href="assets/logo.svg#logo"></use>
+                </svg>
+                <span class="os-name">MorgOS</span>
+                <span class="time" id="currentTime"></span>
+            </div>
+            <div class="top-bar-right">
+                <span class="date" id="currentDate"></span>
+            </div>
+        </div>
+
+        <!-- Desktop Background -->
+        <div class="desktop-background"></div>
+
+        <!-- Windows Container -->
+        <div id="windowsContainer" class="windows-container"></div>
+
+        <!-- Dock -->
+        <div class="dock">
+            <div class="dock-item" data-app="file-manager" title="Dosya Yöneticisi">
+                <svg class="dock-icon" width="48" height="48" viewBox="0 0 48 48">
+                    <use href="assets/icons/file-manager.svg#icon"></use>
+                </svg>
+            </div>
+            <div class="dock-item" data-app="calendar" title="Takvim">
+                <svg class="dock-icon" width="48" height="48" viewBox="0 0 48 48">
+                    <use href="assets/icons/calendar.svg#icon"></use>
+                </svg>
+            </div>
+            <div class="dock-item" data-app="text-editor" title="Metin Editörü">
+                <svg class="dock-icon" width="48" height="48" viewBox="0 0 48 48">
+                    <use href="assets/icons/text-editor.svg#icon"></use>
+                </svg>
+            </div>
+            <div class="dock-item" data-app="terminal" title="Terminal">
+                <svg class="dock-icon" width="48" height="48" viewBox="0 0 48 48">
+                    <use href="assets/icons/terminal.svg#icon"></use>
+                </svg>
+            </div>
+            <div class="dock-item" data-app="settings" title="Ayarlar">
+                <svg class="dock-icon" width="48" height="48" viewBox="0 0 48 48">
+                    <use href="assets/icons/settings.svg#icon"></use>
+                </svg>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/app.js"></script>
+</body>
+</html>
