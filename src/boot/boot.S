@@ -1,11 +1,10 @@
 /*
  * MorgOS Bootloader - x86_64 Assembly
  * 
- * Boot sequence: 16-bit real mode -> 32-bit protected mode -> 64-bit long mode
- * UEFI priority, with legacy BIOS support
+ * Boot sequence: 32-bit protected mode -> 64-bit long mode
+ * Multiboot2 compliant for GRUB/UEFI loading
  */
 
-.code16
 .section .boot, "awx"
 
 # Multiboot2 header for GRUB compatibility
@@ -24,39 +23,16 @@ multiboot2_header_start:
 multiboot2_header_end:
 
 .global _start
+.code32
 _start:
     cli                                 # Disable interrupts
     cld                                 # Clear direction flag
 
-    # Set up stack (below 1MB)
-    movw $0x7c00, %sp
-    xorw %ax, %ax
-    movw %ax, %ss
+    # Set up stack in 32-bit mode
+    movl $0x90000, %esp
 
-    # Enable A20 line (for accessing memory above 1MB)
-    call enable_a20
+    # GRUB loads us in protected mode, so we skip A20 and initial setup
 
-    # Load GDT for protected mode
-    lgdt gdt_descriptor
-
-    # Enter protected mode
-    movl %cr0, %eax
-    orl $1, %eax
-    movl %eax, %cr0
-
-    # Far jump to 32-bit code segment
-    ljmp $0x08, $protected_mode
-
-enable_a20:
-    # Fast A20 enable via keyboard controller
-    inb $0x92, %al
-    orb $2, %al
-    outb %al, $0x92
-    ret
-
-.code32
-.align 4
-protected_mode:
     # Set up segment registers for 32-bit mode
     movw $0x10, %ax
     movw %ax, %ds
@@ -64,9 +40,6 @@ protected_mode:
     movw %ax, %fs
     movw %ax, %gs
     movw %ax, %ss
-
-    # Set up stack in 32-bit mode
-    movl $0x90000, %esp
 
     # Check for long mode support (CPUID)
     call check_long_mode_support
@@ -100,6 +73,7 @@ protected_mode:
     # Far jump to 64-bit code segment
     ljmp $0x08, $long_mode
 
+.code32
 check_long_mode_support:
     # Check if CPUID is supported
     pushfl
@@ -133,7 +107,9 @@ check_long_mode_support:
     movl $0xb8000, %edi
     movl $0x4f4e4f4f, (%edi)  # "ON" in red
     hlt
+    jmp .no_long_mode
 
+.code32
 setup_paging:
     # Clear page tables
     movl $pml4_table, %edi
@@ -188,18 +164,6 @@ long_mode:
 .halt_loop:
     hlt
     jmp .halt_loop
-
-# GDT for 32-bit protected mode
-.align 16
-gdt_start:
-    .quad 0x0000000000000000    # Null descriptor
-    .quad 0x00cf9a000000ffff    # Code segment (32-bit)
-    .quad 0x00cf92000000ffff    # Data segment (32-bit)
-gdt_end:
-
-gdt_descriptor:
-    .word gdt_end - gdt_start - 1
-    .long gdt_start
 
 # GDT for 64-bit long mode
 .align 16
