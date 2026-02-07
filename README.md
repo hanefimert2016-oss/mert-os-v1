@@ -108,6 +108,17 @@ Kernel initialized successfully
 2. Ayarlar → Depolama → ISO dosyasını ekleyin
 3. VM'yi başlatın
 
+### CI/CD ile Otomatik Test
+
+GitHub Actions, her pull request ve manuel tetiklemede otomatik olarak projeyi derleyip QEMU ile test eder. Test sonuçlarına şu şekilde erişebilirsiniz:
+
+1. GitHub repository sayfasında **Actions** sekmesine gidin
+2. İlgili workflow run'ını seçin (ör. "CI - Build and QEMU Screenshot")
+3. Workflow tamamlandığında, sayfanın alt kısmındaki **Artifacts** bölümünden `morgos-artifacts` indirilebilir
+4. Bu artifact içinde:
+   - `screenshot.png`: QEMU'dan alınan ekran görüntüsü
+   - `morgos.iso`: Derlenen ISO dosyası (varsa)
+
 ## 📝 Geliştirme Notları
 
 ### İlk Sürüm Özellikleri (v0.1)
