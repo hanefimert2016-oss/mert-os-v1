@@ -250,11 +250,11 @@ function createWindow(appName, title, content) {
     window.style.zIndex = ++windowZIndex;
     window.setAttribute('data-app', appName);
     
-    // Random position
-    const maxX = window.offsetWidth || 400;
-    const maxY = window.offsetHeight || 300;
-    const randomX = Math.max(50, Math.min(window.innerWidth - maxX - 50, Math.random() * 300 + 100));
-    const randomY = Math.max(100, Math.min(window.innerHeight - maxY - 150, Math.random() * 200 + 100));
+    // Random position - use fixed dimensions for calculation
+    const windowWidth = 400;
+    const windowHeight = 300;
+    const randomX = Math.max(50, Math.min(window.innerWidth - windowWidth - 50, Math.random() * 300 + 100));
+    const randomY = Math.max(100, Math.min(window.innerHeight - windowHeight - 150, Math.random() * 200 + 100));
     
     window.style.left = randomX + 'px';
     window.style.top = randomY + 'px';
@@ -412,7 +412,7 @@ function executeCommand(command) {
     
     switch (cmd) {
         case 'help':
-            return 'Kullanılabilir komutlar:\n  help - Yardım\n  clear - Ekranı temizle\n  date - Tarih ve saat\n  about - MorgOS hakkında';
+            return 'Kullanılabilir komutlar:<br>&nbsp;&nbsp;help - Yardım<br>&nbsp;&nbsp;clear - Ekranı temizle<br>&nbsp;&nbsp;date - Tarih ve saat<br>&nbsp;&nbsp;about - MorgOS hakkında';
         case 'clear':
             setTimeout(() => {
                 const output = document.getElementById('terminalOutput');
