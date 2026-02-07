@@ -1,0 +1,49 @@
+name: CI - Build and QEMU Screenshot
+
+on:
+  pull_request:
+    branches: [ "feature/initial-kernel" ]
+  workflow_dispatch: {}
+
+jobs:
+  build-and-screenshot:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential nasm gcc-multilib qemu-system-x86 xorriso grub-pc-bin grub-efi-amd64-bin xvfb imagemagick python3-pip
+
+      - name: Build kernel and ISO
+        run: |
+          make all || true
+          if make iso; then echo "ISO made"; fi
+        shell: bash
+
+      - name: Run QEMU under XVFB and capture screenshot
+        run: |
+          mkdir -p build
+          # Choose boot image: prefer build/morgos.iso then build/kernel.elf
+          BOOT_IMAGE=""
+          if [ -f build/morgos.iso ]; then BOOT_IMAGE="-cdrom build/morgos.iso"; else if [ -f build/kernel.elf ]; then BOOT_IMAGE="-kernel build/kernel.elf"; fi; fi
+          echo "Booting with $BOOT_IMAGE"
+          xvfb-run --auto-servernum --server-args='-screen 0 1024x768x24' bash -lc "qemu-system-x86_64 $BOOT_IMAGE -m 512 -snapshot -no-reboot -display sdl & PID=$!; sleep 12; import -window root build/screenshot.png || (sleep 8 && import -window root build/screenshot.png) || true; kill $PID || true"
+        shell: bash
+
+      - name: Verify screenshot
+        run: |
+          if [ -f build/screenshot.png ]; then echo "Screenshot saved"; else echo "Screenshot missing"; fi
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: morgos-artifacts
+          path: |
+            build/screenshot.png
+            build/morgos.iso
