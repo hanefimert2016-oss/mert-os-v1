@@ -5,7 +5,7 @@ MorgOS, sıfırdan yazılmış, x86_64 mimarisi için özel bootloader ve minima
 ## 🎯 Proje Özeti
 
 Bu proje, UEFI/BIOS uyumlu (UEFI öncelikli) özel bir bootloader ve temel kernel içerir:
-- **Custom Bootloader**: 16-bit gerçek mod → 32-bit korumalı mod → 64-bit long mode geçişi
+- **Custom Bootloader**: 32-bit korumalı mod → 64-bit long mode geçişi (Multiboot2/GRUB uyumlu)
 - **Minimal Kernel**: GDT/IDT kurulumu, sayfalama, VGA/framebuffer çıktısı
 - **Basit Init Sistemi**: Kernel başlangıç betiği
 
