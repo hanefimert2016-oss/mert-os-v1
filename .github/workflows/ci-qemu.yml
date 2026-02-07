@@ -13,6 +13,10 @@ jobs:
   build-and-screenshot:
     runs-on: ubuntu-latest
     
+    # Limit permissions for security
+    permissions:
+      contents: read
+    
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
