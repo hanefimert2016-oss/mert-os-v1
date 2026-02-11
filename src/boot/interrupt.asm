@@ -1,4 +1,4 @@
-; Interrupt Service Routines (ISR) and IRQ handlers
+section .text
 
 global isr0, isr1, isr2, isr3, isr4, isr5, isr6, isr7
 global isr8, isr9, isr10, isr11, isr12, isr13, isr14, isr15
@@ -10,26 +10,61 @@ global irq8, irq9, irq10, irq11, irq12, irq13, irq14, irq15
 extern isr_handler
 extern irq_handler
 
+[BITS 64]
+
+%macro PUSH_ALL 0
+    push rax
+    push rbx
+    push rcx
+    push rdx
+    push rsi
+    push rdi
+    push rbp
+    push r8
+    push r9
+    push r10
+    push r11
+    push r12
+    push r13
+    push r14
+    push r15
+%endmacro
+
+%macro POP_ALL 0
+    pop r15
+    pop r14
+    pop r13
+    pop r12
+    pop r11
+    pop r10
+    pop r9
+    pop r8
+    pop rbp
+    pop rdi
+    pop rsi
+    pop rdx
+    pop rcx
+    pop rbx
+    pop rax
+%endmacro
+
 %macro ISR_NOERRCODE 1
 isr%1:
-    cli
-    push dword 0
-    push dword %1
+    push qword 0
+    push qword %1
     jmp isr_common_stub
 %endmacro
 
 %macro ISR_ERRCODE 1
 isr%1:
-    cli
-    push dword %1
+    push qword %1
     jmp isr_common_stub
 %endmacro
 
 %macro IRQ 2
 irq%1:
-    cli
-    push dword 0
-    push dword %2
+    push qword 0
+    push qword %2
     jmp irq_common_stub
 %endmacro
 
@@ -84,53 +119,17 @@ IRQ 14, 46
 IRQ 15, 47
 
 isr_common_stub:
-    pusha
-    mov ax, ds
-    push eax
-
-    mov ax, 0x10
-    mov ds, ax
-    mov es, ax
-    mov fs, ax
-    mov gs, ax
-
-    push esp
+    PUSH_ALL
+    mov rdi, rsp
     call isr_handler
-    add esp, 4
-
-    pop eax
-    mov ds, ax
-    mov es, ax
-    mov fs, ax
-    mov gs, ax
-
-    popa
-    add esp, 8
-    sti
-    iret
+    POP_ALL
+    add rsp, 16
+    iretq
 
 irq_common_stub:
-    pusha
-    mov ax, ds
-    push eax
-
-    mov ax, 0x10
-    mov ds, ax
-    mov es, ax
-    mov fs, ax
-    mov gs, ax
-
-    push esp
+    PUSH_ALL
+    mov rdi, rsp
     call irq_handler
-    add esp, 4
-
-    pop ebx
-    mov ds, bx
-    mov es, bx
-    mov fs, bx
-    mov gs, bx
-
-    popa
-    add esp, 8
-    sti
-    iret
+    POP_ALL
+    add rsp, 16
+    iretq

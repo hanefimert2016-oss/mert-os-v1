@@ -14,30 +14,9 @@ int strcmp(const char *s1, const char *s2) {
     return *(unsigned char *)s1 - *(unsigned char *)s2;
 }
 
-int strncmp(const char *s1, const char *s2, size_t n) {
-    while (n && *s1 && (*s1 == *s2)) {
-        s1++;
-        s2++;
-        n--;
-    }
-    if (n == 0) return 0;
-    return *(unsigned char *)s1 - *(unsigned char *)s2;
-}
-
 char *strcpy(char *dest, const char *src) {
     char *d = dest;
     while ((*d++ = *src++));
-    return dest;
-}
-
-char *strncpy(char *dest, const char *src, size_t n) {
-    size_t i;
-    for (i = 0; i < n && src[i]; i++) {
-        dest[i] = src[i];
-    }
-    for (; i < n; i++) {
-        dest[i] = '\0';
-    }
     return dest;
 }
 
@@ -56,11 +35,4 @@ void *memcpy(void *dest, const void *src, size_t num) {
         *d++ = *s++;
     }
     return dest;
-}
-
-int strstart(const char *str, const char *prefix) {
-    while (*prefix) {
-        if (*str++ != *prefix++) return 0;
-    }
-    return 1;
 }

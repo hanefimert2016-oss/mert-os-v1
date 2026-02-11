@@ -11,7 +11,9 @@ typedef signed short     int16_t;
 typedef signed int       int32_t;
 typedef signed long long int64_t;
 
-typedef uint32_t size_t;
+typedef uint64_t size_t;
+typedef int64_t  ssize_t;
+typedef uint64_t uintptr_t;
 
 #define NULL ((void*)0)
 #define true  1

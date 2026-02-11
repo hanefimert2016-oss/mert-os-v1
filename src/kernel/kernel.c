@@ -1,36 +1,42 @@
-#include "gdt.h"
 #include "idt.h"
-#include "../drivers/vga.h"
+#include "multiboot2.h"
+#include "../drivers/framebuffer.h"
+#include "../drivers/font.h"
 #include "../drivers/keyboard.h"
 #include "../shell/shell.h"
 #include "../lib/string.h"
 
-static void print_welcome(void) {
-    vga_print_color("  __  __           _    ___  ____  \n", VGA_LIGHT_CYAN, VGA_BLACK);
-    vga_print_color(" |  \\/  | ___ _ __| |_ / _ \\/ ___| \n", VGA_LIGHT_CYAN, VGA_BLACK);
-    vga_print_color(" | |\\/| |/ _ \\ '__| __| | | \\___ \\ \n", VGA_LIGHT_CYAN, VGA_BLACK);
-    vga_print_color(" | |  | |  __/ |  | |_| |_| |___) |\n", VGA_LIGHT_CYAN, VGA_BLACK);
-    vga_print_color(" |_|  |_|\\___|_|   \\__|\\___/|____/ \n", VGA_LIGHT_CYAN, VGA_BLACK);
-    vga_print("\n");
-    vga_print_color("  MertOS v1.0.0 - x86 Isletim Sistemi\n", VGA_YELLOW, VGA_BLACK);
-    vga_print_color("  Gelistirici: Mert\n", VGA_LIGHT_GREEN, VGA_BLACK);
-    vga_print("\n");
-    vga_print_color("  Hosgeldiniz! 'help' yazarak komutlari gorebilirsiniz.\n", VGA_WHITE, VGA_BLACK);
-    vga_print_color("  ================================================\n\n", VGA_DARK_GREY, VGA_BLACK);
-}
+#define BG_COLOR    0x001A1A2E
+#define TITLE_CLR   0x0000DDFF
+#define ACCENT_CLR  0x00FFD700
+#define PROMPT_CLR  0x0000FF88
+#define FG_COLOR    0x00E0E0E0
 
-void kernel_main(uint32_t magic, uint32_t addr) {
-    (void)magic;
-    (void)addr;
-
-    gdt_init();
+void kernel_main(uint32_t magic, uint32_t mb_info_addr) {
     idt_init();
-    vga_init();
-
     __asm__ volatile ("sti");
 
-    keyboard_init();
+    struct multiboot2_tag_framebuffer *fb_tag = NULL;
 
-    print_welcome();
+    if (magic == MULTIBOOT2_MAGIC) {
+        fb_tag = multiboot2_get_framebuffer(mb_info_addr);
+    }
+
+    if (fb_tag) {
+        fb_init(fb_tag->framebuffer_addr, fb_tag->framebuffer_pitch,
+                fb_tag->framebuffer_width, fb_tag->framebuffer_height,
+                fb_tag->framebuffer_bpp);
+    } else {
+        fb_init(0xFD000000, 1024 * 4, 1024, 768, 32);
+    }
+
+    fb_clear(BG_COLOR);
+
+    uint32_t w = fb_get_width();
+    uint32_t h = fb_get_height();
+    fb_fill_rect(0, 0, w, 3, TITLE_CLR);
+    fb_fill_rect(0, h - 3, w, 3, TITLE_CLR);
+
+    keyboard_init();
     shell_run();
 }

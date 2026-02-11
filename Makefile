@@ -2,9 +2,10 @@ CC = gcc
 ASM = nasm
 LD = ld
 
-CFLAGS = -m32 -ffreestanding -fno-builtin -fno-stack-protector -nostdlib -nodefaultlibs -Wall -Wextra -c
-ASMFLAGS = -f elf32
-LDFLAGS = -m elf_i386 -T linker.ld -nostdlib
+CFLAGS = -m64 -ffreestanding -fno-builtin -fno-stack-protector -nostdlib -nodefaultlibs \
+         -mno-red-zone -mcmodel=large -Wall -Wextra -c
+ASMFLAGS = -f elf64
+LDFLAGS = -m elf_x86_64 -T linker.ld -nostdlib
 
 KERNEL = mertOS.bin
 ISO = mertOS.iso
@@ -37,9 +38,9 @@ clean:
 	rm -f iso/boot/$(KERNEL)
 
 run: $(ISO)
-	qemu-system-i386 -cdrom $(ISO)
+	qemu-system-x86_64 -cdrom $(ISO) -m 256M
 
-run-debug: $(ISO)
-	qemu-system-i386 -cdrom $(ISO) -d int -no-reboot
+run-vnc: $(ISO)
+	qemu-system-x86_64 -cdrom $(ISO) -m 256M -display none -vnc 0.0.0.0:0
 
-.PHONY: all clean run run-debug
+.PHONY: all clean run run-vnc

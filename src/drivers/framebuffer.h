@@ -1,0 +1,23 @@
+#ifndef FRAMEBUFFER_H
+#define FRAMEBUFFER_H
+
+#include "../lib/types.h"
+
+struct framebuffer_info {
+    uint64_t addr;
+    uint32_t pitch;
+    uint32_t width;
+    uint32_t height;
+    uint8_t  bpp;
+};
+
+void fb_init(uint64_t addr, uint32_t pitch, uint32_t width, uint32_t height, uint8_t bpp);
+void fb_put_pixel(uint32_t x, uint32_t y, uint32_t color);
+void fb_draw_rect(uint32_t x, uint32_t y, uint32_t w, uint32_t h, uint32_t color);
+void fb_fill_rect(uint32_t x, uint32_t y, uint32_t w, uint32_t h, uint32_t color);
+void fb_clear(uint32_t color);
+uint32_t fb_get_width(void);
+uint32_t fb_get_height(void);
+struct framebuffer_info *fb_get_info(void);
+
+#endif

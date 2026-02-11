@@ -1,6 +1,6 @@
 #include "keyboard.h"
 #include "../lib/io.h"
-#include "../drivers/vga.h"
+#include "../kernel/idt.h"
 
 static char key_buffer[KEYBOARD_BUFFER_SIZE];
 static volatile int buffer_start = 0;
@@ -42,7 +42,7 @@ static void keyboard_buffer_push(char c) {
 
 static void keyboard_callback(struct registers *regs) {
     (void)regs;
-    uint8_t scancode = inb(KEYBOARD_DATA_PORT);
+    uint8_t scancode = inb(0x60);
 
     if (scancode == 0x2A || scancode == 0x36) {
         shift_pressed = true;
@@ -57,9 +57,7 @@ static void keyboard_callback(struct registers *regs) {
         return;
     }
 
-    if (scancode & 0x80) {
-        return;
-    }
+    if (scancode & 0x80) return;
 
     if (scancode < sizeof(scancode_to_ascii)) {
         char c;
@@ -69,14 +67,9 @@ static void keyboard_callback(struct registers *regs) {
             c = scancode_to_ascii[scancode];
         }
 
-        if (caps_lock && c >= 'a' && c <= 'z') {
-            c -= 32;
-        } else if (caps_lock && c >= 'A' && c <= 'Z' && !shift_pressed) {
-        }
+        if (caps_lock && c >= 'a' && c <= 'z') c -= 32;
 
-        if (c != 0) {
-            keyboard_buffer_push(c);
-        }
+        if (c != 0) keyboard_buffer_push(c);
     }
 }
 
