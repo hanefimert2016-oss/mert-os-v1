@@ -1,0 +1,5 @@
+*.o
+*.bin
+*.iso
+screenshot_*.png
+full_outputs/
