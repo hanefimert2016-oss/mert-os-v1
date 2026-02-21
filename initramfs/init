@@ -1,0 +1,12 @@
+#!/bin/sh
+# MorgOS Init Script
+# This will be executed as the first user-space process
+
+echo "MorgOS Init Starting..."
+echo "Mounting filesystems..."
+echo "Starting system services..."
+echo "Init complete - spawning shell"
+
+# In a full implementation, this would exec /bin/sh
+# For now, this is a placeholder that the kernel can reference
+exec /bin/sh
