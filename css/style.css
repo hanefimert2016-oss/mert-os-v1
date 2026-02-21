@@ -1,0 +1,605 @@
+/* ===== Variables ===== */
+:root {
+    --primary-color: #87CEEB;
+    --background-color: #F0F4F8;
+    --dock-bg: rgba(255, 255, 255, 0.7);
+    --text-color: #333333;
+    --highlight-color: #4A90E2;
+    --window-bg: rgba(255, 255, 255, 0.85);
+    --shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.15);
+}
+
+/* ===== Reset & Base ===== */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+    overflow: hidden;
+    height: 100vh;
+    width: 100vw;
+    background: var(--background-color);
+}
+
+.hidden {
+    display: none !important;
+}
+
+/* ===== Splash Screen ===== */
+.splash-screen {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: linear-gradient(135deg, var(--primary-color) 0%, var(--highlight-color) 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10000;
+    animation: fadeIn 0.5s ease-in;
+}
+
+.splash-content {
+    text-align: center;
+    animation: slideUp 0.8s ease-out;
+}
+
+.logo-animation {
+    animation: pulse 2s ease-in-out infinite;
+    filter: drop-shadow(0 4px 16px rgba(0, 0, 0, 0.2));
+}
+
+.splash-title {
+    font-size: 3rem;
+    color: white;
+    margin: 20px 0;
+    font-weight: 300;
+    letter-spacing: 2px;
+}
+
+.loading-text {
+    color: rgba(255, 255, 255, 0.9);
+    font-size: 1.2rem;
+    margin: 20px 0;
+}
+
+.loading-bar {
+    width: 300px;
+    height: 4px;
+    background: rgba(255, 255, 255, 0.3);
+    border-radius: 2px;
+    overflow: hidden;
+    margin: 20px auto;
+}
+
+.loading-progress {
+    height: 100%;
+    background: white;
+    border-radius: 2px;
+    animation: loading 2s ease-in-out;
+    animation-fill-mode: forwards;
+}
+
+/* ===== Desktop ===== */
+.desktop {
+    position: relative;
+    width: 100vw;
+    height: 100vh;
+    overflow: hidden;
+}
+
+.desktop-background {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(135deg, 
+        var(--background-color) 0%, 
+        #e0eaf4 50%, 
+        var(--primary-color) 100%);
+    z-index: 0;
+}
+
+/* ===== Top Bar ===== */
+.top-bar {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 40px;
+    background: var(--dock-bg);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.3);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 20px;
+    z-index: 900;
+    box-shadow: var(--shadow);
+}
+
+.top-bar-left,
+.top-bar-right {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.top-logo {
+    width: 24px;
+    height: 24px;
+}
+
+.os-name {
+    font-weight: 600;
+    color: var(--text-color);
+}
+
+.time,
+.date {
+    color: var(--text-color);
+    font-size: 0.9rem;
+}
+
+/* ===== Windows Container ===== */
+.windows-container {
+    position: absolute;
+    top: 40px;
+    left: 0;
+    width: 100%;
+    height: calc(100% - 120px);
+    z-index: 100;
+    pointer-events: none;
+}
+
+.window {
+    position: absolute;
+    background: var(--window-bg);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border-radius: 12px;
+    box-shadow: var(--shadow);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    min-width: 400px;
+    min-height: 300px;
+    pointer-events: all;
+    display: flex;
+    flex-direction: column;
+    animation: windowOpen 0.3s ease-out;
+}
+
+.window-header {
+    background: rgba(255, 255, 255, 0.5);
+    border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+    padding: 12px 16px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-radius: 12px 12px 0 0;
+    cursor: move;
+}
+
+.window-title {
+    font-weight: 600;
+    color: var(--text-color);
+    font-size: 0.95rem;
+}
+
+.window-controls {
+    display: flex;
+    gap: 8px;
+}
+
+.window-control-btn {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    border: none;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.window-control-btn.close {
+    background: #ff5f56;
+}
+
+.window-control-btn.minimize {
+    background: #ffbd2e;
+}
+
+.window-control-btn.maximize {
+    background: #27c93f;
+}
+
+.window-control-btn:hover {
+    transform: scale(1.1);
+}
+
+.window-content {
+    flex: 1;
+    padding: 20px;
+    overflow-y: auto;
+    color: var(--text-color);
+}
+
+/* ===== Dock ===== */
+.dock {
+    position: fixed;
+    bottom: 8px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--dock-bg);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    border-radius: 24px;
+    padding: 8px 16px;
+    display: flex;
+    gap: 12px;
+    box-shadow: var(--shadow);
+    z-index: 1000;
+    animation: dockSlideUp 0.6s ease-out;
+}
+
+.dock-item {
+    width: 56px;
+    height: 56px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(255, 255, 255, 0.4);
+    border-radius: 16px;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+    position: relative;
+}
+
+.dock-item:hover {
+    transform: translateY(-10px) scale(1.1);
+    background: rgba(255, 255, 255, 0.6);
+}
+
+.dock-item::before {
+    content: attr(title);
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(0, 0, 0, 0.8);
+    color: white;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 0.75rem;
+    white-space: nowrap;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s;
+    margin-bottom: 8px;
+}
+
+.dock-item:hover::before {
+    opacity: 1;
+}
+
+.dock-icon {
+    width: 36px;
+    height: 36px;
+}
+
+/* ===== App Specific Styles ===== */
+
+/* File Manager */
+.file-tree {
+    list-style: none;
+    padding-left: 20px;
+}
+
+.file-item {
+    padding: 8px;
+    cursor: pointer;
+    border-radius: 4px;
+    transition: background 0.2s;
+}
+
+.file-item:hover {
+    background: rgba(0, 0, 0, 0.05);
+}
+
+.folder::before {
+    content: "📁 ";
+}
+
+.file::before {
+    content: "📄 ";
+}
+
+/* Calendar */
+.calendar-container {
+    text-align: center;
+}
+
+.calendar-header {
+    font-size: 1.5rem;
+    margin-bottom: 20px;
+    color: var(--highlight-color);
+}
+
+.calendar-date {
+    font-size: 3rem;
+    font-weight: 700;
+    color: var(--primary-color);
+    margin: 20px 0;
+}
+
+.calendar-info {
+    font-size: 1.2rem;
+    color: var(--text-color);
+}
+
+/* Text Editor */
+.text-editor-container {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
+.editor-toolbar {
+    display: flex;
+    gap: 8px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+    margin-bottom: 12px;
+}
+
+.editor-btn {
+    padding: 6px 12px;
+    background: var(--primary-color);
+    color: white;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 0.85rem;
+    transition: background 0.2s;
+}
+
+.editor-btn:hover {
+    background: var(--highlight-color);
+}
+
+.editor-textarea {
+    flex: 1;
+    width: 100%;
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    border-radius: 8px;
+    padding: 12px;
+    font-family: 'Courier New', monospace;
+    font-size: 0.95rem;
+    resize: none;
+    background: rgba(255, 255, 255, 0.5);
+}
+
+/* Terminal */
+.terminal-container {
+    background: #1e1e1e;
+    color: #00ff00;
+    font-family: 'Courier New', monospace;
+    padding: 16px;
+    border-radius: 8px;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
+.terminal-output {
+    flex: 1;
+    overflow-y: auto;
+    margin-bottom: 12px;
+}
+
+.terminal-line {
+    margin: 4px 0;
+    font-size: 0.9rem;
+}
+
+.terminal-input-container {
+    display: flex;
+    align-items: center;
+}
+
+.terminal-prompt {
+    margin-right: 8px;
+    color: #87CEEB;
+}
+
+.terminal-input {
+    flex: 1;
+    background: transparent;
+    border: none;
+    color: #00ff00;
+    font-family: 'Courier New', monospace;
+    font-size: 0.9rem;
+    outline: none;
+}
+
+/* Settings */
+.settings-container {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.settings-section {
+    padding: 16px;
+    background: rgba(255, 255, 255, 0.5);
+    border-radius: 8px;
+}
+
+.settings-title {
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin-bottom: 12px;
+    color: var(--highlight-color);
+}
+
+.settings-option {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 0;
+}
+
+.settings-select {
+    padding: 6px 12px;
+    border: 1px solid rgba(0, 0, 0, 0.2);
+    border-radius: 6px;
+    background: white;
+    cursor: pointer;
+}
+
+/* ===== Animations ===== */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+@keyframes slideUp {
+    from {
+        transform: translateY(30px);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+@keyframes pulse {
+    0%, 100% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(1.05);
+    }
+}
+
+@keyframes loading {
+    0% {
+        width: 0%;
+    }
+    100% {
+        width: 100%;
+    }
+}
+
+@keyframes dockSlideUp {
+    from {
+        transform: translateX(-50%) translateY(100px);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(-50%) translateY(0);
+        opacity: 1;
+    }
+}
+
+@keyframes windowOpen {
+    from {
+        transform: scale(0.9);
+        opacity: 0;
+    }
+    to {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+/* ===== Responsive Design ===== */
+@media (max-width: 768px) {
+    .dock {
+        bottom: 4px;
+        padding: 6px 12px;
+        gap: 8px;
+    }
+
+    .dock-item {
+        width: 48px;
+        height: 48px;
+    }
+
+    .dock-icon {
+        width: 28px;
+        height: 28px;
+    }
+
+    .window {
+        min-width: 90vw;
+        min-height: 60vh;
+    }
+
+    .splash-title {
+        font-size: 2rem;
+    }
+
+    .loading-bar {
+        width: 200px;
+    }
+
+    .top-bar {
+        padding: 0 10px;
+    }
+
+    .top-bar-left,
+    .top-bar-right {
+        gap: 8px;
+        font-size: 0.85rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .dock-item::before {
+        display: none;
+    }
+
+    .time {
+        display: none;
+    }
+}
+
+/* ===== Accessibility ===== */
+.dock-item:focus,
+.window-control-btn:focus,
+.editor-btn:focus,
+.settings-select:focus {
+    outline: 2px solid var(--highlight-color);
+    outline-offset: 2px;
+}
+
+/* ===== Scrollbar Styling ===== */
+::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: rgba(0, 0, 0, 0.05);
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+    background: var(--primary-color);
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: var(--highlight-color);
+}

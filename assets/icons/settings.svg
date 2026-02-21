@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48">
+    <defs>
+        <linearGradient id="settingsGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" style="stop-color:#667EEA;stop-opacity:1" />
+            <stop offset="100%" style="stop-color:#764BA2;stop-opacity:1" />
+        </linearGradient>
+    </defs>
+    
+    <g id="icon">
+        <!-- Gear outer circle -->
+        <circle cx="24" cy="24" r="18" fill="url(#settingsGradient)" stroke="#5568CC" stroke-width="1.5"/>
+        
+        <!-- Gear teeth (8 teeth) -->
+        <g fill="#8B9FDD">
+            <rect x="22" y="4" width="4" height="6" rx="1"/>
+            <rect x="22" y="38" width="4" height="6" rx="1"/>
+            <rect x="4" y="22" width="6" height="4" rx="1"/>
+            <rect x="38" y="22" width="6" height="4" rx="1"/>
+            
+            <rect x="11" y="9" width="4" height="6" rx="1" transform="rotate(-45 13 12)"/>
+            <rect x="33" y="9" width="4" height="6" rx="1" transform="rotate(45 35 12)"/>
+            <rect x="11" y="33" width="4" height="6" rx="1" transform="rotate(45 13 36)"/>
+            <rect x="33" y="33" width="4" height="6" rx="1" transform="rotate(-45 35 36)"/>
+        </g>
+        
+        <!-- Inner circle -->
+        <circle cx="24" cy="24" r="8" fill="#FFFFFF" opacity="0.9"/>
+        
+        <!-- Center circle -->
+        <circle cx="24" cy="24" r="4" fill="url(#settingsGradient)"/>
+        
+        <!-- Center dot -->
+        <circle cx="24" cy="24" r="2" fill="#FFFFFF"/>
+    </g>
+</svg>
