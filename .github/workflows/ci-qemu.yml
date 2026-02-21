@@ -1,0 +1,252 @@
+name: CI - Build and QEMU Screenshot
+
+# Trigger this workflow on pull requests to feature/initial-kernel branch
+# and allow manual workflow dispatch
+on:
+  pull_request:
+    branches:
+      - feature/initial-kernel
+      - copilot/feature-initial-kernel
+  workflow_dispatch:
+
+jobs:
+  build-and-screenshot:
+    runs-on: ubuntu-latest
+    
+    # Limit permissions for security
+    permissions:
+      contents: read
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      
+      - name: Install required packages
+        run: |
+          echo "::group::Installing build dependencies"
+          sudo apt-get update
+          sudo apt-get install -y \
+            build-essential \
+            nasm \
+            gcc \
+            make \
+            git \
+            xorriso \
+            grub-pc-bin \
+            grub-common \
+            qemu-system-x86 \
+            xvfb \
+            imagemagick \
+            python3
+          echo "::endgroup::"
+          
+          echo "::group::Verifying installations"
+          echo "GCC version: $(gcc --version | head -n1)"
+          echo "Make version: $(make --version | head -n1)"
+          echo "NASM version: $(nasm --version)"
+          echo "QEMU version: $(qemu-system-x86_64 --version | head -n1)"
+          echo "ImageMagick version: $(convert --version | head -n1)"
+          echo "xorriso version: $(xorriso --version 2>&1 | head -n1)"
+          echo "::endgroup::"
+      
+      - name: Build kernel
+        id: build_kernel
+        run: |
+          echo "::group::Building kernel with 'make all'"
+          make all
+          echo "::endgroup::"
+          
+          echo "Kernel build successful!"
+          ls -lh build/
+      
+      - name: Build ISO image
+        id: build_iso
+        run: |
+          echo "::group::Building ISO with 'make iso'"
+          make iso
+          echo "::endgroup::"
+          
+          if [ -f build/morgos.iso ]; then
+            ISO_SIZE=$(du -h build/morgos.iso | cut -f1)
+            echo "ISO build successful! Size: $ISO_SIZE"
+            ls -lh build/morgos.iso
+          else
+            echo "Warning: ISO file not found, but continuing..."
+          fi
+      
+      - name: Launch QEMU with xvfb (headless)
+        id: launch_qemu
+        run: |
+          echo "::group::Starting QEMU in headless mode with xvfb"
+          
+          # Start Xvfb on display :99 and launch QEMU
+          export DISPLAY=:99
+          
+          # Launch QEMU in background with xvfb-run
+          # Use snapshot mode to avoid modifying the ISO
+          # Use -no-reboot to prevent reboot loops
+          # Use -serial file to capture serial output for debugging
+          xvfb-run --auto-servernum --server-args='-screen 0 1024x768x24' \
+            qemu-system-x86_64 \
+            -cdrom build/morgos.iso \
+            -m 512 \
+            -display sdl \
+            -snapshot \
+            -no-reboot \
+            -serial file:build/qemu-serial.log &
+          
+          QEMU_PID=$!
+          echo "QEMU_PID=$QEMU_PID" >> $GITHUB_ENV
+          echo "DISPLAY=$DISPLAY" >> $GITHUB_ENV
+          
+          echo "QEMU started with PID: $QEMU_PID on display $DISPLAY"
+          echo "::endgroup::"
+          
+          # Give QEMU and the kernel time to boot
+          echo "Waiting 15 seconds for kernel to boot..."
+          sleep 15
+          
+          # Check if QEMU is still running
+          if ps -p $QEMU_PID > /dev/null; then
+            echo "QEMU is running successfully"
+          else
+            echo "Warning: QEMU process may have exited"
+          fi
+      
+      - name: Capture screenshot
+        id: capture_screenshot
+        # Continue on error - screenshot failure should not fail the job
+        continue-on-error: true
+        run: |
+          echo "::group::Capturing framebuffer screenshot"
+          
+          # Use the DISPLAY from previous step
+          export DISPLAY=${DISPLAY:-:99}
+          
+          # Capture screenshot using ImageMagick import
+          # -window root captures the entire root window
+          # -display specifies which X display to use
+          import -display $DISPLAY -window root build/screenshot.png || {
+            echo "Warning: First screenshot attempt failed, trying alternative method..."
+            sleep 5
+            
+            # Try with xwd and convert as fallback
+            xwd -root -display $DISPLAY -out build/screenshot.xwd 2>/dev/null && \
+            convert build/screenshot.xwd build/screenshot.png 2>/dev/null || {
+              echo "Warning: Screenshot capture failed with both methods"
+              echo "::warning::Screenshot capture failed - this is non-fatal"
+              exit 0
+            }
+          }
+          
+          echo "::endgroup::"
+          
+          # Check if screenshot was captured and is not empty
+          if [ -f build/screenshot.png ]; then
+            SCREENSHOT_SIZE=$(stat -f%z build/screenshot.png 2>/dev/null || stat -c%s build/screenshot.png 2>/dev/null)
+            if [ "$SCREENSHOT_SIZE" -gt 1000 ]; then
+              echo "Screenshot captured successfully! Size: $SCREENSHOT_SIZE bytes"
+              ls -lh build/screenshot.png
+            else
+              echo "::warning::Screenshot file is too small ($SCREENSHOT_SIZE bytes) - may be blank"
+            fi
+          else
+            echo "::warning::Screenshot file not created"
+          fi
+      
+      - name: Stop QEMU
+        if: always()
+        run: |
+          echo "Stopping QEMU process..."
+          if [ -n "$QEMU_PID" ] && ps -p $QEMU_PID > /dev/null 2>&1; then
+            kill $QEMU_PID 2>/dev/null || true
+            sleep 2
+            # Force kill if still running
+            kill -9 $QEMU_PID 2>/dev/null || true
+            echo "QEMU stopped"
+          else
+            echo "QEMU process not found or already stopped"
+          fi
+          
+          # Display serial log if available
+          if [ -f build/qemu-serial.log ]; then
+            echo "::group::QEMU Serial Output"
+            cat build/qemu-serial.log || echo "Could not read serial log"
+            echo "::endgroup::"
+          fi
+      
+      - name: Upload screenshot artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: qemu-screenshot
+          path: build/screenshot.png
+          if-no-files-found: warn
+          retention-days: 30
+      
+      - name: Upload ISO artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: morgos-iso
+          path: build/morgos.iso
+          if-no-files-found: warn
+          retention-days: 30
+      
+      - name: Upload QEMU logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: qemu-logs
+          path: build/qemu-serial.log
+          if-no-files-found: ignore
+          retention-days: 7
+      
+      - name: Summary
+        if: always()
+        run: |
+          echo "## Build and Screenshot Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          if [ -f build/kernel.elf ]; then
+            echo "✅ Kernel built successfully" >> $GITHUB_STEP_SUMMARY
+            echo "- Kernel: \`build/kernel.elf\`" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "❌ Kernel build failed" >> $GITHUB_STEP_SUMMARY
+          fi
+          
+          if [ -f build/morgos.iso ]; then
+            ISO_SIZE=$(du -h build/morgos.iso | cut -f1)
+            echo "✅ ISO built successfully" >> $GITHUB_STEP_SUMMARY
+            echo "- ISO: \`build/morgos.iso\` ($ISO_SIZE)" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "⚠️ ISO build may have issues" >> $GITHUB_STEP_SUMMARY
+          fi
+          
+          if [ -f build/screenshot.png ]; then
+            SCREENSHOT_SIZE=$(stat -f%z build/screenshot.png 2>/dev/null || stat -c%s build/screenshot.png 2>/dev/null)
+            echo "✅ Screenshot captured" >> $GITHUB_STEP_SUMMARY
+            echo "- Screenshot: \`build/screenshot.png\` ($SCREENSHOT_SIZE bytes)" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "⚠️ Screenshot was not captured (non-fatal)" >> $GITHUB_STEP_SUMMARY
+          fi
+          
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### How to access artifacts" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "1. Go to the **Actions** tab in this repository" >> $GITHUB_STEP_SUMMARY
+          echo "2. Click on this workflow run" >> $GITHUB_STEP_SUMMARY
+          echo "3. Scroll down to the **Artifacts** section" >> $GITHUB_STEP_SUMMARY
+          echo "4. Download the artifacts:" >> $GITHUB_STEP_SUMMARY
+          echo "   - \`qemu-screenshot\` - Screenshot of the booted kernel" >> $GITHUB_STEP_SUMMARY
+          echo "   - \`morgos-iso\` - Bootable ISO image" >> $GITHUB_STEP_SUMMARY
+          echo "   - \`qemu-logs\` - Serial output from QEMU (if available)" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Screenshot Production Process" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "The screenshot is produced by:" >> $GITHUB_STEP_SUMMARY
+          echo "1. Building the kernel and ISO using \`make all && make iso\`" >> $GITHUB_STEP_SUMMARY
+          echo "2. Launching QEMU in headless mode using Xvfb (X virtual framebuffer)" >> $GITHUB_STEP_SUMMARY
+          echo "3. Waiting 15 seconds for the kernel to boot" >> $GITHUB_STEP_SUMMARY
+          echo "4. Capturing the framebuffer using ImageMagick's \`import\` command" >> $GITHUB_STEP_SUMMARY
+          echo "5. Uploading the screenshot as a workflow artifact" >> $GITHUB_STEP_SUMMARY
